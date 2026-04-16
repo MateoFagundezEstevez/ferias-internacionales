@@ -26,7 +26,8 @@ with col2:
     st.markdown("Cámara de Comercio y Servicios del Uruguay")
 
 with col3:
-    st.markdown("[📧 Contacto](mailto:internacionales@ccsu.org.uy)")
+    st.markdown("## Consultar")
+    st.markdown("[📧 Contacto](mailto:comex@cncs.com.uy)")
 
 st.divider()
 
