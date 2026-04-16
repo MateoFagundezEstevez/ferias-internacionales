@@ -70,9 +70,6 @@ with col2:
     st.markdown("## Calendario de Ferias Internacionales")
     st.markdown("Una iniciativa del Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay.")
 
-with col3:
-st.divider()
-
 # =========================
 # 🔍 BUSCADOR
 # =========================
