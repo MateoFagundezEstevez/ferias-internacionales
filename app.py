@@ -18,13 +18,36 @@ df.columns = df.columns.str.strip()
 # 🧹 LIMPIEZA DE DATOS
 # =========================
 
-# Año como entero (FIX CLAVE)
+# Año limpio
+df["Año de edición"] = (
+    df["Año de edición"]
+    .astype(str)
+    .str.extract(r"(\d{4})")[0]
+)
 df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce").astype("Int64")
 
-# Limpiar textos
+# Textos limpios
 df["País"] = df["País"].astype(str).str.strip()
 df["Industria / Sector"] = df["Industria / Sector"].astype(str).str.strip()
-df["¿Ofrece apoyo económico a la participación?"] = df["¿Ofrece apoyo económico a la participación?"].astype(str).str.strip()
+
+# Apoyo económico (normalizado)
+df["¿Ofrece apoyo económico a la participación?"] = (
+    df["¿Ofrece apoyo económico a la participación?"]
+    .astype(str)
+    .str.strip()
+    .str.lower()
+)
+
+# Crear columna limpia de apoyo
+def clasificar_apoyo(valor):
+    if "si" in valor:
+        return "Sí"
+    elif "no" in valor:
+        return "No"
+    else:
+        return "Otro"
+
+df["Apoyo limpio"] = df["¿Ofrece apoyo económico a la participación?"].apply(clasificar_apoyo)
 
 # Fecha
 df["Fecha de Inicio"] = pd.to_datetime(df["Fecha de Inicio"], errors="coerce")
@@ -92,10 +115,7 @@ if anios:
     df_filtrado = df_filtrado[df_filtrado["Año de edición"].isin(anios)]
 
 if apoyo != "Todos":
-    df_filtrado = df_filtrado[
-        df_filtrado["¿Ofrece apoyo económico a la participación?"]
-        .str.contains(apoyo, case=False, na=False)
-    ]
+    df_filtrado = df_filtrado[df_filtrado["Apoyo limpio"] == apoyo]
 
 # =========================
 # 📊 ORDENAR
@@ -121,7 +141,12 @@ for _, row in df_filtrado.iterrows():
 
         st.markdown(f"📅 {fecha_inicio} → {row['Fecha de finalización']}")
         st.markdown(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
-        st.markdown(f"💰 Apoyo: {row['¿Ofrece apoyo económico a la participación?']}")
+
+        # Badge visual de apoyo
+        if row["Apoyo limpio"] == "Sí":
+            st.markdown("🟢 **Apoyo disponible**")
+        elif row["Apoyo limpio"] == "No":
+            st.markdown("🔴 **Sin apoyo**")
 
         if pd.notna(row["Fecha límite para postular al apoyo"]):
             st.markdown(f"⏳ Postulación hasta: {row['Fecha límite para postular al apoyo']}")
@@ -138,5 +163,5 @@ for _, row in df_filtrado.iterrows():
 st.markdown("""
 ---
 **Cámara de Comercio y Servicios del Uruguay**  
-📧 comex@cncs.com.uy 
+📧 comex@cncs.com.uy  
 """)
