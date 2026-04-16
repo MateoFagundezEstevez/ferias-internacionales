@@ -33,14 +33,14 @@ df["¿Ofrece apoyo económico a la participación?"] = df["¿Ofrece apoyo econó
 col1, col2, col3 = st.columns([1, 4, 1])
 
 with col1:
-    st.image("logo.png", width=100)
+    st.image("logo.png", width=240)
 
 with col2:
     st.markdown("## Ferias Internacionales")
     st.markdown("Cámara de Comercio y Servicios del Uruguay")
 
 with col3:
-    st.markdown("[📧 Contacto](mailto:internacionales@ccsu.org.uy)")
+    st.markdown("[📧 Contacto](mailto:comex@cncs.com.uy)")
 
 st.divider()
 
@@ -129,5 +129,5 @@ for _, row in df_filtrado.iterrows():
 st.markdown("""
 ---
 **Cámara de Comercio y Servicios del Uruguay**  
-📧 internacionales@ccsu.org.uy  
+📧 comex@cncs.com.uy  
 """)
