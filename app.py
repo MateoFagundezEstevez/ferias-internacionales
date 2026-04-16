@@ -4,6 +4,15 @@ import os
 
 st.set_page_config(page_title="Ferias Internacionales", layout="wide")
 
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    st.image("logo_ccsu.png", width=120)
+
+with col2:
+    st.title("Ferias Internacionales")
+    st.markdown("Cámara de Comercio y Servicios del Uruguay")
+
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIefEBOe9bST2rmGJt_aDSK_jMcrnbGFnNnO97mwUmJROtLcb-DVWJlsSPyOarTHSJeyPq0o7mm3Tu/pub?gid=1507359487&single=true&output=csv"
 
 df = pd.read_csv(url)
