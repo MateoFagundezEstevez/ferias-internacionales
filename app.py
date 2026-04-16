@@ -40,22 +40,33 @@ df["Fecha de Inicio"] = pd.to_datetime(df["Fecha de Inicio"], errors="coerce")
 # 💰 APOYO ECONÓMICO (VECTORIAL)
 # =========================
 
+import unicodedata
+
 col_apoyo = "¿Ofrece apoyo económico a la participación?"
 
-df[col_apoyo] = df[col_apoyo].astype(str).str.lower()
+# Función para normalizar texto (saca tildes)
+def limpiar_texto(texto):
+    if pd.isna(texto):
+        return ""
+    texto = str(texto).strip().lower()
+    texto = unicodedata.normalize('NFKD', texto).encode('ascii', 'ignore').decode('utf-8')
+    return texto
 
+# Aplicar limpieza
+df["apoyo_normalizado"] = df[col_apoyo].apply(limpiar_texto)
+
+# Clasificación
 df["Apoyo limpio"] = "Otro"
 
 df.loc[
-    df[col_apoyo].str.contains("si", case=False, na=False),
+    df["apoyo_normalizado"].str.contains("si", na=False),
     "Apoyo limpio"
 ] = "Sí"
 
 df.loc[
-    df[col_apoyo].str.contains("no", case=False, na=False),
+    df["apoyo_normalizado"].str.contains("no", na=False),
     "Apoyo limpio"
 ] = "No"
-
 # =========================
 # 🧭 HEADER
 # =========================
