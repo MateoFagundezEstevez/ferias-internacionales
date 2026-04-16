@@ -16,19 +16,25 @@ df = pd.read_csv(url)
 # 🧹 LIMPIEZA DE DATOS
 # =========================
 
-# Limpiar nombres de columnas
+# Columnas limpias
 df.columns = df.columns.str.strip()
 
-# Limpiar solo columnas de texto
+# Limpiar strings
 for col in df.select_dtypes(include="object").columns:
-    df[col] = df[col].str.strip()
+    df[col] = df[col].astype(str).str.strip()
 
-# Año limpio (simple y directo)
+# 🎯 AÑO (solo 4 dígitos válidos)
+df["Año de edición"] = (
+    df["Año de edición"]
+    .astype(str)
+    .str.extract(r"(20\d{2})")[0]
+)
+
 df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce")
 df = df.dropna(subset=["Año de edición"])
 df["Año de edición"] = df["Año de edición"].astype(int)
 
-# Fechas
+# 📅 Fechas
 df["Fecha de Inicio"] = pd.to_datetime(df["Fecha de Inicio"], errors="coerce")
 df["Fecha de finalización"] = pd.to_datetime(df["Fecha de finalización"], errors="coerce")
 
@@ -48,7 +54,6 @@ col_apoyo = "¿Ofrece apoyo económico a la participación?"
 df["apoyo_normalizado"] = df[col_apoyo].apply(limpiar_texto)
 
 df["Apoyo limpio"] = "Otro"
-
 df.loc[df["apoyo_normalizado"].str.contains("si", na=False), "Apoyo limpio"] = "Sí"
 df.loc[df["apoyo_normalizado"].str.contains("no", na=False), "Apoyo limpio"] = "No"
 
@@ -66,8 +71,6 @@ with col2:
     st.markdown("Una iniciativa del Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay.")
 
 with col3:
-    st.markdown("[📧 Contacto](mailto:comex@cncs.com.uy)")
-
 st.divider()
 
 # =========================
@@ -100,7 +103,7 @@ with col4:
     apoyo = st.selectbox("Apoyo económico", ["Todos", "Sí", "No"])
 
 # =========================
-# 🔎 APLICAR FILTROS
+# 🔎 FILTRO
 # =========================
 
 df_filtrado = df.copy()
@@ -117,16 +120,13 @@ if anios:
 if apoyo != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Apoyo limpio"] == apoyo]
 
-# =========================
-# 📊 ORDENAR
-# =========================
-
+# Ordenar
 df_filtrado = df_filtrado.sort_values(by="Fecha de Inicio")
 
 st.divider()
 
 # =========================
-# 📦 RESULTADOS
+# 📊 RESULTADOS
 # =========================
 
 st.markdown(f"**Resultados encontrados: {len(df_filtrado)}**")
@@ -145,16 +145,21 @@ for _, row in df_filtrado.iterrows():
         st.markdown(f"📅 {fecha_inicio} → {fecha_fin}")
         st.markdown(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
 
+        # Apoyo visual
         if row["Apoyo limpio"] == "Sí":
             st.markdown("🟢 **Apoyo disponible**")
         elif row["Apoyo limpio"] == "No":
             st.markdown("🔴 **Sin apoyo**")
 
-        if pd.notna(row["Fecha límite para postular al apoyo"]):
-            st.markdown(f"⏳ Postulación hasta: {row['Fecha límite para postular al apoyo']}")
+        # Link robusto
+        link = str(row["Más info (página web):"]).strip()
 
-        if pd.notna(row["Más info (página web):"]):
-            st.markdown(f"[🔗 Más información]({row['Más info (página web):']})")
+        if link and link.lower() != "nan":
+            if not link.startswith("http"):
+                link = "https://" + link
+            st.markdown(f"[🔗 Más información]({link})")
+        else:
+            st.markdown("🔗 Sin enlace disponible")
 
         st.divider()
 
