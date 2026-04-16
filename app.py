@@ -1,28 +1,50 @@
 import streamlit as st
 import pandas as pd
+import os
 
 st.set_page_config(page_title="Ferias Internacionales", layout="wide")
 
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIefEBOe9bST2rmGJt_aDSK_jMcrnbGFnNnO97mwUmJROtLcb-DVWJlsSPyOarTHSJeyPq0o7mm3Tu/pub?gid=1507359487&single=true&output=csv"
 
 df = pd.read_csv(url)
-
-# Limpiar nombres de columnas
 df.columns = df.columns.str.strip()
 
 st.title("🌎 Ferias Internacionales")
-st.markdown("Explorá oportunidades comerciales para empresas uruguayas")
 
-# 🔍 Buscador
-busqueda = st.text_input("Buscar feria, país o sector")
+# =========================
+# 🔍 FILTROS
+# =========================
 
-if busqueda:
-    df = df[df.apply(lambda row: row.astype(str).str.contains(busqueda, case=False).any(), axis=1)]
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    paises = st.multiselect("País", df["País"].dropna().unique())
+
+with col2:
+    sectores = st.multiselect("Sector", df["Industria / Sector"].dropna().unique())
+
+with col3:
+    anios = st.multiselect("Año", df["Año de edición"].dropna().unique())
+
+# Aplicar filtros
+df_filtrado = df.copy()
+
+if paises:
+    df_filtrado = df_filtrado[df_filtrado["País"].isin(paises)]
+
+if sectores:
+    df_filtrado = df_filtrado[df_filtrado["Industria / Sector"].isin(sectores)]
+
+if anios:
+    df_filtrado = df_filtrado[df_filtrado["Año de edición"].isin(anios)]
 
 st.divider()
 
-# 📦 Mostrar ferias
-for _, row in df.iterrows():
+# =========================
+# 📦 MOSTRAR FERIAS
+# =========================
+
+for _, row in df_filtrado.iterrows():
     with st.container():
 
         st.subheader(row["Nombre de la feria"])
@@ -31,12 +53,39 @@ for _, row in df.iterrows():
         st.write(f"🏭 {row['Industria / Sector']} | {row['Subsector']}")
         st.write(f"📅 {row['Fecha de Inicio']} → {row['Fecha de finalización']}")
         st.write(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
-        st.write(f"💰 Apoyo: {row['¿Ofrece apoyo económico a la participación?']}")
-
-        if pd.notna(row["Fecha límite para postular al apoyo"]):
-            st.write(f"⏳ Postulación hasta: {row['Fecha límite para postular al apoyo']}")
 
         if pd.notna(row["Más info (página web):"]):
             st.markdown(f"[🔗 Más información]({row['Más info (página web):']})")
 
         st.divider()
+
+# =========================
+# 🔔 ALERTAS (registro simple)
+# =========================
+
+st.header("🔔 Recibir alertas de nuevas ferias")
+
+email = st.text_input("Tu email")
+
+if st.button("Activar alerta"):
+    
+    if email:
+
+        nueva_alerta = pd.DataFrame([{
+            "email": email,
+            "paises": ",".join(paises),
+            "sectores": ",".join(sectores),
+            "anios": ",".join(map(str, anios))
+        }])
+
+        if os.path.exists("alertas.csv"):
+            alertas = pd.read_csv("alertas.csv")
+            alertas = pd.concat([alertas, nueva_alerta], ignore_index=True)
+        else:
+            alertas = nueva_alerta
+
+        alertas.to_csv("alertas.csv", index=False)
+
+        st.success("Alerta guardada correctamente")
+    else:
+        st.warning("Ingresá un email")
