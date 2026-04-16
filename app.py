@@ -107,6 +107,6 @@ for _, row in df_filtrado.iterrows():
 
 st.markdown("""
 ---
-**Cámara de Comercio y Servicios del Uruguay**  
+**Consultas a:**  
 📧 comex@cncs.com.uy  
 """)
