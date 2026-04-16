@@ -18,7 +18,10 @@ df.columns = df.columns.str.strip()
 # 🧹 LIMPIEZA DE DATOS
 # =========================
 
-# Año limpio
+# Limpieza general de strings
+df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+# Año limpio (robusto)
 df["Año de edición"] = (
     df["Año de edición"]
     .astype(str)
@@ -26,31 +29,28 @@ df["Año de edición"] = (
 )
 df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce").astype("Int64")
 
-# Textos limpios
-df["País"] = df["País"].astype(str).str.strip()
-df["Industria / Sector"] = df["Industria / Sector"].astype(str).str.strip()
-
-# Apoyo económico (normalizado)
-df["¿Ofrece apoyo económico a la participación?"] = (
-    df["¿Ofrece apoyo económico a la participación?"]
-    .astype(str)
-    .str.strip()
-    .str.lower()
-)
-
-# Crear columna limpia de apoyo
-def clasificar_apoyo(valor):
-    if "si" in valor:
-        return "Sí"
-    elif "no" in valor:
-        return "No"
-    else:
-        return "Otro"
-
-df["Apoyo limpio"] = df["¿Ofrece apoyo económico a la participación?"].apply(clasificar_apoyo)
-
 # Fecha
 df["Fecha de Inicio"] = pd.to_datetime(df["Fecha de Inicio"], errors="coerce")
+
+# =========================
+# 💰 APOYO ECONÓMICO (VECTORIAL)
+# =========================
+
+col_apoyo = "¿Ofrece apoyo económico a la participación?"
+
+df[col_apoyo] = df[col_apoyo].astype(str).str.lower()
+
+df["Apoyo limpio"] = "Otro"
+
+df.loc[
+    df[col_apoyo].str.contains("si", case=False, na=False),
+    "Apoyo limpio"
+] = "Sí"
+
+df.loc[
+    df[col_apoyo].str.contains("no", case=False, na=False),
+    "Apoyo limpio"
+] = "No"
 
 # =========================
 # 🧭 HEADER
@@ -129,6 +129,8 @@ st.divider()
 # 📦 RESULTADOS
 # =========================
 
+st.markdown(f"**Resultados encontrados: {len(df_filtrado)}**")
+
 for _, row in df_filtrado.iterrows():
     with st.container():
 
@@ -142,7 +144,7 @@ for _, row in df_filtrado.iterrows():
         st.markdown(f"📅 {fecha_inicio} → {row['Fecha de finalización']}")
         st.markdown(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
 
-        # Badge visual de apoyo
+        # Badge visual
         if row["Apoyo limpio"] == "Sí":
             st.markdown("🟢 **Apoyo disponible**")
         elif row["Apoyo limpio"] == "No":
