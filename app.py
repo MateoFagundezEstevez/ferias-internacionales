@@ -69,6 +69,7 @@ with col1:
 with col2:
     st.markdown("## Calendario de Ferias Internacionales")
     st.markdown("Una iniciativa del Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay.")
+    st.markdown("Algunas de estas ferias ofrecen apoyo económico a la participación, existe un filtro para encontrarlas, aplíquelo y si tiene dudas, contáctenos al mail al pie de la página.")
 
 # =========================
 # 🔍 BUSCADOR
