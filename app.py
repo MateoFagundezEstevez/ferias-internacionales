@@ -10,7 +10,21 @@ st.set_page_config(page_title="Ferias Internacionales", layout="wide")
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIefEBOe9bST2rmGJt_aDSK_jMcrnbGFnNnO97mwUmJROtLcb-DVWJlsSPyOarTHSJeyPq0o7mm3Tu/pub?gid=1507359487&single=true&output=csv"
 
 df = pd.read_csv(url)
+
+# Limpiar columnas
 df.columns = df.columns.str.strip()
+
+# =========================
+# 🧹 LIMPIEZA DE DATOS
+# =========================
+
+# Año como número (clave)
+df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce")
+
+# Limpiar textos (evita errores en filtros)
+df["País"] = df["País"].astype(str).str.strip()
+df["Industria / Sector"] = df["Industria / Sector"].astype(str).str.strip()
+df["¿Ofrece apoyo económico a la participación?"] = df["¿Ofrece apoyo económico a la participación?"].astype(str).str.strip()
 
 # =========================
 # 🧭 HEADER
@@ -19,11 +33,14 @@ df.columns = df.columns.str.strip()
 col1, col2, col3 = st.columns([1, 4, 1])
 
 with col1:
-    st.image("logo.png", width=220)
+    st.image("logo.png", width=100)
 
 with col2:
     st.markdown("## Ferias Internacionales")
     st.markdown("Cámara de Comercio y Servicios del Uruguay")
+
+with col3:
+    st.markdown("[📧 Contacto](mailto:internacionales@ccsu.org.uy)")
 
 st.divider()
 
@@ -45,19 +62,16 @@ st.markdown("### 🔎 Filtrar oportunidades")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    paises = st.multiselect("País", df["País"].dropna().unique())
+    paises = st.multiselect("País", sorted(df["País"].dropna().unique()))
 
 with col2:
-    sectores = st.multiselect("Sector", df["Industria / Sector"].dropna().unique())
+    sectores = st.multiselect("Sector", sorted(df["Industria / Sector"].dropna().unique()))
 
 with col3:
-    anios = st.multiselect("Año", df["Año de edición"].dropna().unique())
+    anios = st.multiselect("Año", sorted(df["Año de edición"].dropna().unique()))
 
 with col4:
-    apoyo = st.selectbox(
-        "Apoyo económico",
-        ["Todos", "Sí", "No"]
-    )
+    apoyo = st.selectbox("Apoyo económico", ["Todos", "Sí", "No"])
 
 # Aplicar filtros
 df_filtrado = df.copy()
@@ -76,6 +90,13 @@ if apoyo != "Todos":
         df_filtrado["¿Ofrece apoyo económico a la participación?"].str.contains(apoyo, case=False, na=False)
     ]
 
+# =========================
+# 📊 ORDENAR POR FECHA
+# =========================
+
+df_filtrado["Fecha de Inicio"] = pd.to_datetime(df_filtrado["Fecha de Inicio"], errors="coerce")
+df_filtrado = df_filtrado.sort_values(by="Fecha de Inicio")
+
 st.divider()
 
 # =========================
@@ -89,7 +110,7 @@ for _, row in df_filtrado.iterrows():
 
         st.markdown(f"**📍 {row['Ciudad']}, {row['País']}**")
         st.markdown(f"🏭 {row['Industria / Sector']} — {row['Subsector']}")
-        st.markdown(f"📅 {row['Fecha de Inicio']} → {row['Fecha de finalización']}")
+        st.markdown(f"📅 {row['Fecha de Inicio'].date() if pd.notna(row['Fecha de Inicio']) else 'Fecha no disponible'} → {row['Fecha de finalización']}")
         st.markdown(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
         st.markdown(f"💰 Apoyo: {row['¿Ofrece apoyo económico a la participación?']}")
 
@@ -107,6 +128,6 @@ for _, row in df_filtrado.iterrows():
 
 st.markdown("""
 ---
-**Consultas a:**  
-📧 comex@cncs.com.uy  
+**Cámara de Comercio y Servicios del Uruguay**  
+📧 internacionales@ccsu.org.uy  
 """)
