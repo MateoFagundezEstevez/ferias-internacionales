@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import unicodedata
 
 st.set_page_config(page_title="Calendario de Ferias Internacionales", layout="wide")
 
@@ -11,62 +12,46 @@ url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIefEBOe9bST2rmGJt_aDSK_
 
 df = pd.read_csv(url)
 
-# Limpiar columnas
-df.columns = df.columns.str.strip()
-
 # =========================
 # 🧹 LIMPIEZA DE DATOS
 # =========================
 
-# Limpiar columnas
+# Limpiar nombres de columnas
 df.columns = df.columns.str.strip()
 
-# Limpiar solo texto (FIX)
+# Limpiar solo columnas de texto
 for col in df.select_dtypes(include="object").columns:
     df[col] = df[col].str.strip()
 
-# Año limpio
-df["Año de edición"] = (
-    df["Año de edición"]
-    .astype(str)
-    .str.extract(r"(\d{4})")[0]
-)
-df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce").astype("Int64")
+# Año limpio (simple y directo)
+df["Año de edición"] = pd.to_numeric(df["Año de edición"], errors="coerce")
+df = df.dropna(subset=["Año de edición"])
+df["Año de edición"] = df["Año de edición"].astype(int)
 
-# Fecha
+# Fechas
 df["Fecha de Inicio"] = pd.to_datetime(df["Fecha de Inicio"], errors="coerce")
+df["Fecha de finalización"] = pd.to_datetime(df["Fecha de finalización"], errors="coerce")
 
 # =========================
-# 💰 APOYO ECONÓMICO (VECTORIAL)
+# 💰 APOYO ECONÓMICO
 # =========================
 
-import unicodedata
-
-col_apoyo = "¿Ofrece apoyo económico a la participación?"
-
-# Función para normalizar texto (saca tildes)
 def limpiar_texto(texto):
     if pd.isna(texto):
         return ""
-    texto = str(texto).strip().lower()
+    texto = str(texto).lower().strip()
     texto = unicodedata.normalize('NFKD', texto).encode('ascii', 'ignore').decode('utf-8')
     return texto
 
-# Aplicar limpieza
+col_apoyo = "¿Ofrece apoyo económico a la participación?"
+
 df["apoyo_normalizado"] = df[col_apoyo].apply(limpiar_texto)
 
-# Clasificación
 df["Apoyo limpio"] = "Otro"
 
-df.loc[
-    df["apoyo_normalizado"].str.contains("si", na=False),
-    "Apoyo limpio"
-] = "Sí"
+df.loc[df["apoyo_normalizado"].str.contains("si", na=False), "Apoyo limpio"] = "Sí"
+df.loc[df["apoyo_normalizado"].str.contains("no", na=False), "Apoyo limpio"] = "No"
 
-df.loc[
-    df["apoyo_normalizado"].str.contains("no", na=False),
-    "Apoyo limpio"
-] = "No"
 # =========================
 # 🧭 HEADER
 # =========================
@@ -78,8 +63,10 @@ with col1:
 
 with col2:
     st.markdown("## Calendario de Ferias Internacionales")
-    st.markdown("Una inicativa del departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay para nuclear la oferta de Ferias Internacionales, clave para su diversificación e inserción comercial.")
-    st.markdown("Algunas de estas ferias ofrecen apoyo económico a la participación, existe un filtro para encontrarlas, aplíquelo y si tiene dudas, contáctenos al mail al pie de la página.")
+    st.markdown("Una iniciativa del Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay.")
+
+with col3:
+    st.markdown("[📧 Contacto](mailto:comex@cncs.com.uy)")
 
 st.divider()
 
@@ -107,7 +94,7 @@ with col2:
     sectores = st.multiselect("Sector", sorted(df["Industria / Sector"].dropna().unique()))
 
 with col3:
-    anios = st.multiselect("Año", sorted(df["Año de edición"].dropna().unique()))
+    anios = st.multiselect("Año", sorted(df["Año de edición"].unique()))
 
 with col4:
     apoyo = st.selectbox("Apoyo económico", ["Todos", "Sí", "No"])
@@ -152,12 +139,12 @@ for _, row in df_filtrado.iterrows():
         st.markdown(f"**📍 {row['Ciudad']}, {row['País']}**")
         st.markdown(f"🏭 {row['Industria / Sector']} — {row['Subsector']}")
 
-        fecha_inicio = row["Fecha de Inicio"].date() if pd.notna(row["Fecha de Inicio"]) else "No disponible"
+        fecha_inicio = row["Fecha de Inicio"].strftime("%d/%m/%Y") if pd.notna(row["Fecha de Inicio"]) else "No disponible"
+        fecha_fin = row["Fecha de finalización"].strftime("%d/%m/%Y") if pd.notna(row["Fecha de finalización"]) else "No disponible"
 
-        st.markdown(f"📅 {fecha_inicio} → {row['Fecha de finalización']}")
+        st.markdown(f"📅 {fecha_inicio} → {fecha_fin}")
         st.markdown(f"📊 Expositores: {row['Cantidad estimada de expositores']} | Visitantes: {row['Cantidad estimada de visitantes']}")
 
-        # Badge visual
         if row["Apoyo limpio"] == "Sí":
             st.markdown("🟢 **Apoyo disponible**")
         elif row["Apoyo limpio"] == "No":
@@ -177,6 +164,6 @@ for _, row in df_filtrado.iterrows():
 
 st.markdown("""
 ---
-**Lic. Mateo Fagúndez - Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay**  
+**Lic. Mateo Fagúndez - Departamento de Negocios Internacionales**  
 📧 comex@cncs.com.uy  
 """)
