@@ -25,10 +25,6 @@ with col2:
     st.markdown("## Ferias Internacionales")
     st.markdown("Cámara de Comercio y Servicios del Uruguay")
 
-with col3:
-    st.markdown("[📧 Contacto](mailto:comex@cncs.com.uy)")
-    st.markdown("## Consultar")
-
 st.divider()
 
 # =========================
@@ -112,5 +108,5 @@ for _, row in df_filtrado.iterrows():
 st.markdown("""
 ---
 **Cámara de Comercio y Servicios del Uruguay**  
-📧 internacionales@ccsu.org.uy  
+📧 comex@cncs.com.uy  
 """)
