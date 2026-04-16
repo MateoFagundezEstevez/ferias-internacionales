@@ -11,7 +11,7 @@ with col1:
 
 with col2:
     st.title("Ferias Internacionales")
-    st.markdown("Cámara de Comercio y Servicios del Uruguay")
+    st.markdown("Departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay - Lic. Mateo Fagúndez")
 
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIefEBOe9bST2rmGJt_aDSK_jMcrnbGFnNnO97mwUmJROtLcb-DVWJlsSPyOarTHSJeyPq0o7mm3Tu/pub?gid=1507359487&single=true&output=csv"
 
