@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Ferias Internacionales", layout="wide")
+st.set_page_config(page_title="Calendario de Ferias Internacionales", layout="wide")
 
 # =========================
 # 📡 DATA
@@ -66,8 +66,8 @@ with col1:
     st.image("logo.png", width=240)
 
 with col2:
-    st.markdown("## Ferias Internacionales")
-    st.markdown("Cámara de Comercio y Servicios del Uruguay")
+    st.markdown("## Calendario de Ferias Internacionales")
+    st.markdown("Una inicativa del departamento de Negocios Internacionales de la Cámara de Comercio y Servicios del Uruguay para nuclear la oferta de Ferias Internacionales, clave para su diversificación e inserción comercial")
 
 st.divider()
 
