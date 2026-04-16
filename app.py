@@ -7,7 +7,7 @@ st.set_page_config(page_title="Ferias Internacionales", layout="wide")
 col1, col2 = st.columns([1, 4])
 
 with col1:
-    st.image("CCSUY-LOGO-HORIZONTAL-Azul.png", width=120)
+    st.image("CCSUY-LOGO-HORIZONTAL-Azul", width=120)
 
 with col2:
     st.title("Ferias Internacionales")
