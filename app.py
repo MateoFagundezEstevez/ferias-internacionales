@@ -18,10 +18,14 @@ df.columns = df.columns.str.strip()
 # 🧹 LIMPIEZA DE DATOS
 # =========================
 
-# Limpieza general de strings
-df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+# Limpiar columnas
+df.columns = df.columns.str.strip()
 
-# Año limpio (robusto)
+# Limpiar solo texto (FIX)
+for col in df.select_dtypes(include="object").columns:
+    df[col] = df[col].str.strip()
+
+# Año limpio
 df["Año de edición"] = (
     df["Año de edición"]
     .astype(str)
