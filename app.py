@@ -4,17 +4,32 @@ import pandas as pd
 import unicodedata
 
 # =========================
-# 📊 GOOGLE ANALYTICS (OPTIMIZADO)
+# 📊 GOOGLE ANALYTICS (GA4)
 # =========================
 
 def load_analytics():
     if "analytics_loaded" not in st.session_state:
-        with open("analytics.html", "r") as f:
-            html_code = f.read()
-            components.html(html_code, height=0)
+        GA_ID = "G-0QXM7MG4F0"
+
+        html_code = f"""
+        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){{dataLayer.push(arguments);}}
+          gtag('js', new Date());
+          gtag('config', '{GA_ID}', {{
+            'anonymize_ip': true
+          }});
+        </script>
+        """
+
+        components.html(html_code, height=0)
         st.session_state.analytics_loaded = True
 
-def track_event(event_name, params={}):
+def track_event(event_name, params=None):
+    if params is None:
+        params = {}
+
     js_code = f"""
     <script>
     if (typeof gtag === 'function') {{
@@ -115,17 +130,17 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     paises = st.multiselect("País", sorted(df["País"].dropna().unique()))
     if paises:
-        track_event("filter_country", {"countries": paises})
+        track_event("filter_country", {"countries": str(paises)})
 
 with col2:
     sectores = st.multiselect("Sector", sorted(df["Industria / Sector"].dropna().unique()))
     if sectores:
-        track_event("filter_sector", {"sector": sectores})
+        track_event("filter_sector", {"sector": str(sectores)})
 
 with col3:
     anios = st.multiselect("Año", sorted(df["Año de edición"].unique()))
     if anios:
-        track_event("filter_year", {"year": anios})
+        track_event("filter_year", {"year": str(anios)})
 
 with col4:
     apoyo = st.selectbox("Apoyo económico", ["Todos", "Sí", "No"])
@@ -185,7 +200,6 @@ for _, row in df_filtrado.iterrows():
             if not link.startswith("http"):
                 link = "https://" + link
 
-            # Tracking de clics (clave)
             if st.button(f"🔗 Más información - {row['Nombre de la feria']}"):
                 track_event("click_feria", {
                     "feria": row["Nombre de la feria"],
